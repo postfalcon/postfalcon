@@ -13,6 +13,7 @@ import pinoHttp from 'pino-http';
 import passport from './lib/passport.js';
 import { logger } from './lib/logger.js';
 import { pool } from './db/pool.js';
+import { schedulerState } from './lib/schedulerHeartbeat.js';
 import usersRouter from './routes/users.js';
 import authRouter from './routes/auth.js';
 import socialAccountsRouter from './routes/socialAccounts.js';
@@ -238,10 +239,13 @@ app.get('/api/csrf-token', (req, res) => {
   res.json({ csrfToken: generateToken(req, res, true) });
 });
 
+// The Docker HEALTHCHECK and outside uptime monitors read this. A stalled scheduler is reported in
+// the body but keeps the 200: the container is still serving, and a monitor that should catch it
+// checks for the keyword "scheduler":"ok" (README → Admin and alerts).
 app.get('/health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW() AS now');
-    res.json({ status: 'ok', db: 'connected', time: result.rows[0].now });
+    res.json({ status: 'ok', db: 'connected', scheduler: schedulerState(), time: result.rows[0].now });
   } catch (err) {
     res.status(500).json({ status: 'error', db: 'disconnected', error: err.message });
   }

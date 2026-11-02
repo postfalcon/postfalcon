@@ -3,7 +3,9 @@
 # (deploy/docker-compose.image.yml). Publishing only: nothing here deploys anywhere, and
 # postfalcon.co itself still deploys by hand with scripts/deploy.sh.
 #
-# Tags: `latest` and `sha-<commit>` on every push to main; `<version>` for a v* tag.
+# Tags: `latest` and `sha-<commit>` on every push to main. A release tag vX.Y.Z (bump
+# package.json's version first) adds `X.Y.Z`, `X.Y` and `X`, so a self-hoster can pin an exact
+# release or follow one major version.
 #
 # Each architecture builds natively on its own runner (amd64 for most servers, arm64 for
 # Raspberry Pi, Oracle Ampere, Apple silicon) and a final job joins the two into one multi-arch
@@ -114,6 +116,8 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,format=short
             type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
 
       - name: Tag both platforms as one image
         working-directory: ${{ runner.temp }}/digests

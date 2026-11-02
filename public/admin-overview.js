@@ -256,18 +256,19 @@ async function loadVersion() {
     const v = await apiJson('/api/admin/version');
     const items = [];
     const up = v.upstream;
+    const running = v.version ? `${v.version} (${shortCommit(v.commit)})` : shortCommit(v.commit);
     if (up.disabled) {
-      items.push(checkItem('ok', `Running ${shortCommit(v.commit)}`, 'Update check is off (UPDATE_CHECK=false).'));
+      items.push(checkItem('ok', `Running ${running}`, 'Update check is off (UPDATE_CHECK=false).'));
     } else if (up.error) {
-      items.push(checkItem('warn', `Running ${shortCommit(v.commit)}`, `Couldn't check ${up.repo} for updates: ${up.error}.`));
+      items.push(checkItem('warn', `Running ${running}`, `Couldn't check ${up.repo} for updates: ${up.error}.`));
     } else if (up.behindBy === 0) {
-      items.push(checkItem('ok', `Up to date (${shortCommit(v.commit)})`, `Same as ${up.repo} main.`));
+      items.push(checkItem('ok', `Up to date: ${running}`, `Same as ${up.repo} main.`));
     } else {
       const behind = up.behindBy ? `${up.behindBy} commit${up.behindBy === 1 ? '' : 's'} behind` : 'Not the latest version';
       items.push(
         checkItem(
           'warn',
-          `${behind}: running ${shortCommit(v.commit)}, latest is ${shortCommit(up.latestCommit)} (${when(up.latestDate)})`,
+          `${behind}: running ${running}, latest is ${shortCommit(up.latestCommit)} (${when(up.latestDate)})`,
           'To update: git pull, then docker compose up -d --build (Docker) or scripts/deploy.sh (pm2). See README → Updating.'
         )
       );

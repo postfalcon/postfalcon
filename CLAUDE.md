@@ -36,7 +36,9 @@ server.
   workflow, `.github/workflows/docker-image.yml` (added at the user's request 2026-10-27), only builds and publishes
   the Docker image to ghcr.io/postfalcon/postfalcon (amd64 + arm64, each built natively on its own runner then merged — not QEMU,
   where `npm ci` hung for hours; the free arm64 runner needs the repo public — `latest` + `sha-<commit>`, APP_COMMIT build arg) on
-  each push to main — it doesn't run tests or touch any server.
+  each push to main — it doesn't run tests or touch any server. Releases (semver, started at v1.0.0 on 2026-11-03): bump
+  `package.json`'s version, commit, `git tag -a vX.Y.Z`, push with `--follow-tags`; the tag adds image tags `X.Y.Z`/`X.Y`/`X`,
+  then write the notes as a GitHub Release. Admin → Overview → Version shows the package version beside the commit.
 - Database backups: `lib/backup.js` runs `pg_dump` (custom format) nightly at 03:30 from scheduler.js, keeps the
   last 7 in `backups/` (git-ignored; `BACKUP_DIR` overrides) and, when `S3_BUCKET` is set, uploads each under the
   bucket's `backups/` prefix (kept 30 days; never served by `/uploads`). `npm run backup` takes one on demand. Restore:

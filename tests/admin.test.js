@@ -1002,6 +1002,7 @@ describe('admin version', () => {
     const res = await admin.get('/api/admin/version');
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
+      version: expect.stringMatching(/^\d+\.\d+\.\d+/),
       commit: 'a'.repeat(40),
       pendingMigrations: [],
       upstream: { repo: 'postfalcon/postfalcon', latestCommit: 'b'.repeat(40), behindBy: 3 },

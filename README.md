@@ -54,6 +54,11 @@ docker compose pull
 docker compose up -d
 ```
 
+The installer follows `latest`, which is every change on `main`. To stay on numbered
+[releases](https://github.com/postfalcon/postfalcon/releases) instead, set `POSTFALCON_IMAGE` in
+`.env` to `ghcr.io/postfalcon/postfalcon:1` (any 1.x release) or `:1.0.0` (exactly that release),
+then pull as above.
+
 ### Install by hand, from source
 
 The same thing step by step, building the image on the server instead of downloading it (2 GB of
@@ -188,8 +193,10 @@ Everything below is done from the app, in the **Admin** section of the sidebar.
 6. **Alerts**: with email working, every admin is emailed when something needs attention, such
    as posts not going out, backups stopping, a burst of failures on one platform, or a run of server
    errors. Admin → Settings can turn this off. These checks run inside the app, so add an outside
-   uptime monitor (any free one that checks `<BASE_URL>/health`) to hear about the server being
-   down altogether.
+   uptime monitor (any free one, such as UptimeRobot) to hear about the server being down
+   altogether. Make it a keyword check on `<BASE_URL>/health` for `"scheduler":"ok"`: that text is
+   there only while the app is up, the database is reachable and the publishing scheduler is
+   running (for the first minute after a restart it says `starting`).
 
 Restart the app after editing `.env`: `docker compose up -d`, or `pm2 reload postfalcon --update-env`.
 
@@ -289,6 +296,10 @@ No test talks to a real social platform, Stripe or an SMTP server: outgoing HTTP
 stubbed in each test and email is mocked. Test files run one at a time because they share the
 database. There's one file per route file (`routes/x.js` → `tests/x.test.js`), plus
 `tests/scheduler.test.js` for publishing; [`tests/setup.js`](tests/setup.js) is the shared setup.
+
+## Security
+
+Please report vulnerabilities privately, not in a public issue. See [SECURITY.md](SECURITY.md).
 
 ## License
 

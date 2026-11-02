@@ -8,6 +8,28 @@ describe('GET /health', () => {
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('ok');
     expect(res.body.db).toBe('connected');
+    // The test app never starts the cron jobs.
+    expect(res.body.scheduler).toBe('off');
+  });
+});
+
+describe('schedulerState', () => {
+  it('tells a ticking scheduler from a stalled or failing one', async () => {
+    const { schedulerHeartbeat, schedulerState } = await import('../lib/schedulerHeartbeat.js');
+    const saved = { ...schedulerHeartbeat };
+    const now = Date.now();
+    try {
+      Object.assign(schedulerHeartbeat, { startedAt: new Date(now - 30000), lastTickAt: null, lastError: null });
+      expect(schedulerState(now)).toBe('starting');
+      schedulerHeartbeat.lastTickAt = new Date(now - 60000);
+      expect(schedulerState(now)).toBe('ok');
+      schedulerHeartbeat.lastError = 'connect ECONNREFUSED';
+      expect(schedulerState(now)).toBe('failing');
+      Object.assign(schedulerHeartbeat, { lastTickAt: new Date(now - 10 * 60000), lastError: null });
+      expect(schedulerState(now)).toBe('stalled');
+    } finally {
+      Object.assign(schedulerHeartbeat, saved);
+    }
   });
 });
 
