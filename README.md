@@ -5,6 +5,8 @@ Postfalcon publishes it on time to **Mastodon, Bluesky, Facebook, Instagram, Thr
 Telegram, YouTube, TikTok, Pinterest and LinkedIn** (X is built in too, for anyone on a paid
 X API plan).
 
+![The Postfalcon calendar: a month of scheduled and published posts across five channels](docs/screenshots/calendar.png)
+
 - **Calendar** with drag-to-reschedule, drafts and a failed-posts view
 - **Cross-posting**: one composer, many channels, with per-platform options (TikTok privacy,
   YouTube title and visibility, Pinterest board)
@@ -18,6 +20,29 @@ X API plan).
 
 Use the hosted version at [postfalcon.co](https://postfalcon.co), or run it yourself: this
 repository is the whole thing.
+
+<details>
+<summary><b>More screenshots</b>: composer, analytics, accounts, admin</summary>
+
+**Writing a post**: one caption and image, sent to several channels at a chosen time.
+
+![The composer with a photo, three channels picked and a time set](docs/screenshots/compose.png)
+
+**Analytics**: views and engagement pulled back from the platforms that report them.
+
+![Analytics for the last 30 days, with totals, a daily chart and a per-platform table](docs/screenshots/analytics.png)
+
+**Accounts**: connected channels, and the connect forms for each platform.
+
+![The Accounts page with five connected channels](docs/screenshots/accounts.png)
+
+**Admin → Platforms**: switch each platform on or off and see which app keys are still missing.
+
+![Admin Platforms page listing each platform's status, credentials and usage](docs/screenshots/admin-platforms.png)
+
+The account shown is demo data (`node scripts/seed-demo.js` on a development database).
+
+</details>
 
 ---
 
