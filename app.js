@@ -131,6 +131,12 @@ function platformGate(...ids) {
     });
   };
 }
+// Share-preview art (og:image) must be loadable by other sites: helmet's default
+// Cross-Origin-Resource-Policy: same-origin makes previewers that render it in an <img> show a blank card.
+app.use(['/og-image.png', '/images'], (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: isProduction ? '7d' : '5m' }));
 // Uploaded media that isn't on local disk: streamed from the S3 bucket when S3_BUCKET is set
 // (lib/storage.js), otherwise falls through to the 404 handler as before.

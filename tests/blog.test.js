@@ -319,6 +319,14 @@ describe('sitemap and robots', () => {
     expect(types).toEqual(['SoftwareApplication', 'Organization']);
   });
 
+  it('lets other sites display the share images (previewers render og:image in an <img>)', async () => {
+    const res = await request(app).get('/og-image.png');
+    expect(res.status).toBe(200);
+    expect(res.headers['cross-origin-resource-policy']).toBe('cross-origin');
+    const page = await request(app).get('/login');
+    expect(page.headers['cross-origin-resource-policy']).toBe('same-origin');
+  });
+
   it('gives an imageless blog post the site-wide share image', async () => {
     await writeFixture(
       'share-default',
