@@ -1,0 +1,21 @@
+<%
+  // Canonical link + Open Graph/Twitter card tags for a public page, so a shared link shows a
+  // preview card. Pass { seo: { title, description, path, type?, image? } }; `path` is the
+  // canonical path (no query string). The default share image is Postfalcon's own artwork, so
+  // an instance renamed in Admin -> Settings gets no image rather than someone else's brand.
+  const seoUrl = `${process.env.BASE_URL}${seo.path}`;
+  const seoImage = seo.image || (siteName === 'Postfalcon' ? '/og-image.png' : null);
+%>
+<link rel="canonical" href="<%= seoUrl %>">
+<meta property="og:type" content="<%= seo.type || 'website' %>">
+<meta property="og:site_name" content="<%= siteName %>">
+<meta property="og:title" content="<%= seo.title %>">
+<meta property="og:description" content="<%= seo.description %>">
+<meta property="og:url" content="<%= seoUrl %>">
+<% if (seoImage) { %><meta property="og:image" content="<%= process.env.BASE_URL %><%= seoImage %>">
+<% if (!seo.image) { %><meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<% } %><% } %>
+<meta name="twitter:card" content="<%= seoImage ? 'summary_large_image' : 'summary' %>">
+<meta name="twitter:title" content="<%= seo.title %>">
+<meta name="twitter:description" content="<%= seo.description %>">

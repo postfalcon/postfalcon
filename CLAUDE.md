@@ -444,6 +444,8 @@ These aren't enforced by a linter — follow them by hand so the codebase doesn'
   see content/blog/*.md above), `redirects` (old slugs that 301 here after a rename). `##`/`###`
   headings automatically get anchor ids and populate the "Contents" sidebar — no manual markup needed. No
   route/view/DB change needed for a new post either way.
+  An SVG `image` also needs a PNG of the same name beside it (link previews don't render SVG; without one the
+  post shares the site-wide `/og-image.png`) — render it with the Edge command in docs/branding/og-image.html.
 - **New author avatar?** Just drop an image at `public/images/authors/<author-id>.jpg` (or `.png`/`.webp`) —
   matched by the same id used in `AUTHORS`/frontmatter `author:`, re-checked on every request (no caching, no
   code change). Falls back to a plain initial-letter badge when no file matches. See

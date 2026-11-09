@@ -307,4 +307,46 @@ describe('sitemap and robots', () => {
     expect(res.text).toContain('Sitemap:');
     expect(res.text).toContain('/sitemap.xml');
   });
+
+  it('gives the landing page a canonical link, a share card and parseable structured data', async () => {
+    const res = await request(app).get('/');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain(`<link rel="canonical" href="${process.env.BASE_URL}/">`);
+    expect(res.text).toContain(`<meta property="og:image" content="${process.env.BASE_URL}/og-image.png">`);
+    expect(res.text).toContain('summary_large_image');
+    const json = res.text.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1];
+    const types = JSON.parse(json)['@graph'].map((node) => node['@type']);
+    expect(types).toEqual(['SoftwareApplication', 'Organization']);
+  });
+
+  it('gives an imageless blog post the site-wide share image', async () => {
+    await writeFixture(
+      'share-default',
+      ['---', 'title: Share Default', 'slug: __test-fixture-share-default', 'description: d', 'date: 2026-01-01', '---', '', 'Body'].join('\n')
+    );
+    const res = await request(app).get('/blog/__test-fixture-share-default');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain(`<meta property="og:image" content="${process.env.BASE_URL}/og-image.png">`);
+  });
+
+  it('shares an SVG card image as its PNG copy, since link previews do not render SVG', async () => {
+    const posts = await listPosts();
+    const withSvg = posts.find((p) => p.image?.endsWith('.svg'));
+    expect(withSvg).toBeTruthy();
+    expect(withSvg.shareImage).toBe(withSvg.image.replace(/\.svg$/, '.png'));
+
+    await writeFixture(
+      'missing-png',
+      ['---', 'title: Missing PNG', 'slug: __test-fixture-missing-png', 'description: d', 'date: 2026-01-01', 'image: /images/blog/__no-such-art.svg', '---', '', 'Body'].join('\n')
+    );
+    const [missing] = (await listPosts({ includeDrafts: true })).filter((p) => p.slug === '__test-fixture-missing-png');
+    expect(missing.shareImage).toBe('/og-image.png');
+  });
+
+  it('keeps the login and sign-up pages out of search results', async () => {
+    for (const page of ['/login', '/signup', '/forgot-password']) {
+      const res = await request(app).get(page);
+      expect(res.text, page).toContain('<meta name="robots" content="noindex">');
+    }
+  });
 });

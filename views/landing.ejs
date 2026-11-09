@@ -6,6 +6,41 @@
 <meta name="color-scheme" content="light dark">
 <title>Postfalcon — Schedule your social posts in one place</title>
 <meta name="description" content="Postfalcon lines up your posts for <%= platformNames %> on one calendar, then publishes them on time. Open source, self-hostable, with an API and MCP server for AI agents.">
+<%- include('partials/social-meta', { seo: {
+  title: 'Postfalcon — Schedule your social posts in one place',
+  description: `Postfalcon lines up your posts for ${platformNames} on one calendar, then publishes them on time. Open source, self-hostable, with an API and MCP server for AI agents.`,
+  path: '/',
+} }) %>
+<script type="application/ld+json">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      name: siteName,
+      url: `${process.env.BASE_URL}/`,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web, Linux (self-hosted), Docker",
+      description: `Social media scheduler for ${platformNames}. Open source (AGPL), self-hostable, with a REST API and an MCP server for AI agents.`,
+      license: "https://www.gnu.org/licenses/agpl-3.0.html",
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "USD",
+        lowPrice: 0,
+        highPrice: Math.max(...Object.values(plans).map((p) => p.priceUsd)),
+        offerCount: Object.values(plans).filter((p) => p.priceUsd > 0).length + 1,
+      },
+    },
+    {
+      "@type": "Organization",
+      name: siteName,
+      url: `${process.env.BASE_URL}/`,
+      logo: `${process.env.BASE_URL}/images/postfalcon-icon.png`,
+      sameAs: ["https://github.com/postfalcon/postfalcon"],
+    },
+  ],
+}).replace(/</g, '\\u003c') %>
+</script>
 <link rel="icon" href="<%= logoUrl || '/favicon.svg' %>">
 <link rel="stylesheet" href="/style.css?v=<%= assetVersion %>">
 </head>

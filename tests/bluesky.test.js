@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import request from 'supertest';
 import app from '../app.js';
 import { pool } from '../db/pool.js';
+import { detectFacets } from '../lib/platforms/bluesky.js';
 
 function jsonResponse(body, status = 200) {
   return {
@@ -101,5 +102,45 @@ describe('bluesky connect', () => {
     const { rows } = await pool.query("SELECT access_token FROM social_accounts WHERE platform = 'bluesky'");
     expect(rows).toHaveLength(1);
     expect(rows[0].access_token).toBe(newPassword);
+  });
+});
+
+describe('bluesky link and hashtag facets', () => {
+  // What each facet covers, read back out of the UTF-8 bytes the way Bluesky does.
+  function covered(text) {
+    const bytes = Buffer.from(text, 'utf8');
+    return detectFacets(text).map((f) => ({
+      text: bytes.subarray(f.index.byteStart, f.index.byteEnd).toString(),
+      ...f.features[0],
+    }));
+  }
+
+  it('links full URLs and tags hashtags, leaving trailing punctuation out', () => {
+    expect(covered('Self-host it: https://postfalcon.co/install.sh (one command). #SelfHosted #OpenSource!')).toEqual([
+      { text: 'https://postfalcon.co/install.sh', $type: 'app.bsky.richtext.facet#link', uri: 'https://postfalcon.co/install.sh' },
+      { text: '#SelfHosted', $type: 'app.bsky.richtext.facet#tag', tag: 'SelfHosted' },
+      { text: '#OpenSource', $type: 'app.bsky.richtext.facet#tag', tag: 'OpenSource' },
+    ]);
+  });
+
+  it('links bare domains on common TLDs only, so Node.js and version numbers stay plain', () => {
+    expect(covered('Built on Node.js, v1.0.0 — see postfalcon.co or github.com/postfalcon/postfalcon.')).toEqual([
+      { text: 'postfalcon.co', $type: 'app.bsky.richtext.facet#link', uri: 'https://postfalcon.co' },
+      {
+        text: 'github.com/postfalcon/postfalcon',
+        $type: 'app.bsky.richtext.facet#link',
+        uri: 'https://github.com/postfalcon/postfalcon',
+      },
+    ]);
+  });
+
+  it('counts byte offsets past emoji, and skips number-only tags and email addresses', () => {
+    expect(covered('Done 🎄 #1 then #buildinpublic, mail me@postfalcon.co')).toEqual([
+      { text: '#buildinpublic', $type: 'app.bsky.richtext.facet#tag', tag: 'buildinpublic' },
+    ]);
+  });
+
+  it('returns no facets for plain text', () => {
+    expect(detectFacets('hello bluesky')).toEqual([]);
   });
 });

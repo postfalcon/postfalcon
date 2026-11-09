@@ -14,8 +14,8 @@
 <meta property="og:url" content="<%= process.env.BASE_URL %>/blog/<%= post.slug %>">
 <meta property="article:published_time" content="<%= post.date.toISOString() %>">
 <% if (post.updated) { %><meta property="article:modified_time" content="<%= post.updated.toISOString() %>"><% } %>
-<% if (post.image) { %><meta property="og:image" content="<%= process.env.BASE_URL %><%= post.image %>"><% } %>
-<meta name="twitter:card" content="<%= post.image ? 'summary_large_image' : 'summary' %>">
+<meta property="og:image" content="<%= process.env.BASE_URL %><%= post.shareImage %>">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="<%= post.title %>">
 <meta name="twitter:description" content="<%= post.description %>">
 <link rel="icon" href="<%= logoUrl || '/favicon.svg' %>">
@@ -29,6 +29,7 @@
   datePublished: post.date.toISOString(),
   dateModified: (post.updated || post.date).toISOString(),
   url: `${process.env.BASE_URL}/blog/${post.slug}`,
+  image: `${process.env.BASE_URL}${post.shareImage}`,
   author: { "@type": "Person", name: post.author.name },
   publisher: { "@type": "Organization", name: "Postfalcon" },
   mainEntityOfPage: { "@type": "WebPage", "@id": `${process.env.BASE_URL}/blog/${post.slug}` },
