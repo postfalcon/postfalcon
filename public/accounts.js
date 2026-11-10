@@ -134,6 +134,17 @@ accountForm?.addEventListener(
   })
 );
 
+// The CSP's form-action 'self' also covers redirects after a submit, so a plain GET form whose
+// response 302s to the user's Mastodon instance is silently blocked by the browser. Navigating
+// from script isn't a form submission, so the same URL works.
+const mastodonForm = document.getElementById('mastodon-connect-form');
+mastodonForm?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const instance = mastodonForm.instance.value.trim();
+  if (!instance) return;
+  window.location.href = `/api/mastodon/connect?instance=${encodeURIComponent(instance)}`;
+});
+
 const telegramForm = document.getElementById('telegram-connect-form');
 telegramForm?.addEventListener(
   'submit',
