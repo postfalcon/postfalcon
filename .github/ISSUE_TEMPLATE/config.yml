@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and help
+    url: https://matrix.to/#/#postfalcon:matrix.org
+    about: Ask in the Matrix space, #postfalcon:matrix.org
+  - name: Security vulnerability
+    url: https://github.com/postfalcon/postfalcon/blob/main/SECURITY.md
+    about: Please report security issues privately, not in a public issue.

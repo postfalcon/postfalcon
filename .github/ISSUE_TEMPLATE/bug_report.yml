@@ -1,0 +1,40 @@
+name: Bug report
+description: Something isn't working as it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown in Admin → Overview → Version (e.g. 1.0.0 and the commit).
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How is it installed?
+      options:
+        - One-line installer (published image)
+        - Docker Compose from source
+        - Without Docker (Node + Postgres)
+        - Hosted (postfalcon.co)
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Social platform, if relevant
+      placeholder: e.g. Mastodon, Bluesky, YouTube
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant lines from `docker compose logs app --tail 100` or Admin → Activity → Server errors. Remove any tokens or passwords.
+      render: text
