@@ -322,6 +322,12 @@ stubbed in each test and email is mocked. Test files run one at a time because t
 database. There's one file per route file (`routes/x.js` → `tests/x.test.js`), plus
 `tests/scheduler.test.js` for publishing; [`tests/setup.js`](tests/setup.js) is the shared setup.
 
+## Community
+
+Questions, ideas or just saying hi: join the Matrix space
+[#postfalcon:matrix.org](https://matrix.to/#/#postfalcon:matrix.org). Bugs and feature
+requests go in [GitHub issues](https://github.com/postfalcon/postfalcon/issues).
+
 ## Security
 
 Please report vulnerabilities privately, not in a public issue. See [SECURITY.md](SECURITY.md).
