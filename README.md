@@ -161,8 +161,17 @@ Run the commands below from the install folder (`~/postfalcon` for the installer
   docker compose stop app
   docker compose exec -T db pg_restore --clean --if-exists --no-owner --single-transaction \
     -U postfalcon -d postfalcon < restore.dump
+  # Posts that were due after the backup was taken may already be live. Turn them into
+  # drafts so the scheduler doesn't publish them a second time:
+  docker compose exec -T db psql -U postfalcon -d postfalcon -c \
+    "UPDATE posts SET status = 'draft' WHERE status IN ('scheduled','posting') AND scheduled_for < now();"
   docker compose start app
   ```
+
+  Then check those drafts against each platform and reschedule only the ones that didn't go out.
+  The database dump doesn't hold uploaded media (the `uploads` volume, or your `S3_BUCKET`) or
+  `.env` (session secret, platform app keys): back those up too. Connected accounts' tokens
+  are inside the dump, so keep backup files as private as `.env`.
 
 ### Troubleshooting
 

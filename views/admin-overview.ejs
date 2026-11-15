@@ -62,6 +62,10 @@
           <p>With Docker: <code>docker compose stop app</code>, then
             <code>docker compose exec -T db pg_restore --clean --if-exists --no-owner --single-transaction -U postfalcon -d postfalcon &lt; &lt;file&gt;.dump</code>,
             then <code>docker compose start app</code>. Everything since the backup was taken is replaced.</p>
+          <p><strong>Before starting the app again</strong>, turn overdue posts into drafts. Posts due after the backup was taken may already be live, and the scheduler would publish them a second time:</p>
+          <p><code>psql "$DATABASE_URL" -c "UPDATE posts SET status = 'draft' WHERE status IN ('scheduled','posting') AND scheduled_for &lt; now();"</code></p>
+          <p>With Docker: <code>docker compose exec -T db psql -U postfalcon -d postfalcon -c "…same UPDATE…"</code>. Then check those drafts against each platform and reschedule only the ones that didn't go out.</p>
+          <p>The dump doesn't hold uploaded media (the uploads folder or bucket) or <code>.env</code>; back those up too. Connected accounts' tokens are inside the dump, so keep backup files private.</p>
         </details>
       </section>
 
