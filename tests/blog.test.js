@@ -110,6 +110,17 @@ describe('blog', () => {
     expect(res.status).toBe(200);
   });
 
+  it('holds back a future-dated post until its date, like a draft', async () => {
+    await writeFixture(
+      'future',
+      ['---', 'title: Future', 'slug: __test-fixture-future', 'description: Later.', 'date: 2999-01-01', '---', '', 'Soon.'].join('\n')
+    );
+
+    expect((await listPosts()).some((p) => p.slug === '__test-fixture-future')).toBe(false);
+    expect((await request(app).get('/blog/__test-fixture-future')).status).toBe(404);
+    expect((await request(app).get('/sitemap.xml')).text).not.toContain('__test-fixture-future');
+  });
+
   it('keeps only the first post when two share a slug', async () => {
     await writeFixture(
       'dupe-a',

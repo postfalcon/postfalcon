@@ -2,7 +2,7 @@
 title: "Post Title Goes Here"
 slug: post-title-goes-here
 description: "One or two sentences — this is the meta description, the OG/Twitter card text, and the excerpt shown on the /blog index."
-date: 2026-01-01
+date: 2026-01-01               # a future date schedules the post: hidden until that day (UTC midnight)
 # Optional fields below — safe to delete any of them.
 # updated: 2026-01-15          # only if you've substantially revised the post since `date`
 # author: nathan                # see AUTHORS in lib/blog.js — falls back to DEFAULT_AUTHOR if omitted
