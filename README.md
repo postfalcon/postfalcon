@@ -5,6 +5,8 @@ Postfalcon publishes it on time to **Mastodon, Bluesky, Facebook, Instagram, Thr
 Telegram, YouTube, TikTok, Pinterest and LinkedIn** (X is built in too, for anyone on a paid
 X API plan).
 
+If Postfalcon is useful to you, a ⭐ on GitHub helps it get listed in directories.
+
 ![The Postfalcon calendar: a month of scheduled and published posts across five channels](docs/screenshots/calendar.png)
 
 - **Calendar** with drag-to-reschedule, drafts and a failed-posts view
@@ -12,7 +14,7 @@ X API plan).
   YouTube title and visibility, Pinterest board)
 - **Recurring posts**: daily, weekly or monthly
 - **Analytics**: views, likes, comments and shares pulled back from the platforms that report them
-- **REST API** and an **MCP server**, so scripts and AI agents (Claude, ChatGPT, Cursor, …)
+- **REST API** and an **MCP server**, so scripts and AI agents (Claude Code, Claude Desktop, Cursor, …)
   can plan and publish posts
 - **Outbound webhooks** when a post publishes or fails
 - **Admin pages** for everything an operator needs: who can sign up, invite links, admin
@@ -275,8 +277,9 @@ New accounts then get a 7-day trial and pick a plan through Stripe Checkout.
 - REST API: documented at `/api-docs` on your server. Create a token under **Settings → API
   access for agents**.
 - MCP server, for AI assistants:
-  - URL-based clients (ChatGPT, Claude.ai, Cursor): connect to `<BASE_URL>/mcp` with the
-    header `Authorization: Bearer <your token>`.
+  - URL-based clients that let you set a header (Claude Code, Cursor): connect to
+    `<BASE_URL>/mcp` with the header `Authorization: Bearer <your token>`. ChatGPT and
+    Claude.ai custom connectors need OAuth sign-in, which isn't supported yet.
   - Local clients (Claude Desktop, Cursor's `command` setting): run `npm run mcp` with
     `POSTFALCON_BASE_URL` and `POSTFALCON_API_TOKEN` set.
 

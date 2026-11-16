@@ -1,8 +1,9 @@
 ---
 title: "Connect Any AI Agent to Postfalcon"
 slug: connect-any-ai-agent
-description: "Postfalcon's MCP server now works two ways: a local command for Claude Desktop and Cursor, or a remote URL for ChatGPT, Claude.ai, and anything else that speaks MCP. Same tools, same token, either way."
+description: "Postfalcon's MCP server now works two ways: a local command for Claude Desktop and Cursor, or a remote URL for Claude Code, Cursor and other MCP clients that take a bearer token. Same tools, same token, either way."
 date: 2026-09-15
+updated: 2026-11-16
 author: nathan
 tags: ["Features", "AI Agents"]
 image: /images/blog/connect-any-ai-agent.svg
@@ -13,8 +14,11 @@ heroGradient: ["#6d28d9", "#818cf8"]
 Postfalcon has had an [MCP server](/api-docs) for a while, but it only worked one way: your
 agent's client had to be able to spawn a local process and pass it environment variables. That
 covers Claude Desktop and Cursor's `command`-style config, but not agents that connect over a
-URL instead — ChatGPT, Claude.ai, and a growing list of others. Postfalcon's MCP server now works
-both ways.
+URL instead. Postfalcon's MCP server now works both ways.
+
+> **Update, 16 Nov 2026:** ChatGPT and Claude.ai custom connectors need OAuth sign-in rather than
+> a bearer token, so they can't connect yet. OAuth support is coming; until then the remote URL
+> works with Claude Code, Cursor and other clients that let you set a header.
 
 ## Two ways in, same tools
 
@@ -31,8 +35,8 @@ node mcp/server.js
 
 with `POSTFALCON_BASE_URL` and `POSTFALCON_API_TOKEN` set in its environment.
 
-**A remote URL** — for a client that connects to a hosted endpoint instead, like ChatGPT,
-Claude.ai, Cursor's `url`-style config, OpenClaw, or anything else that speaks
+**A remote URL** — for a client that connects to a hosted endpoint instead, like Claude Code,
+Cursor's `url`-style config, or another client that speaks
 [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports):
 
 ```

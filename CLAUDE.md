@@ -223,8 +223,8 @@ mcp/server.js        ...over stdio, for clients that spawn a local process (Clau
                      Cursor's `command` config) — reads POSTFALCON_BASE_URL/POSTFALCON_API_TOKEN from
                      the environment.
 routes/mcp.js        ...over Streamable HTTP at POST /mcp, for clients that connect via a URL
-                     instead (ChatGPT, Claude.ai, Cursor's `url` config, or any other Streamable
-                     HTTP client) — a fresh McpServer + transport per request (stateless mode,
+                     instead (Claude Code, Cursor's `url` config — clients that let you set a
+                     header; ChatGPT/Claude.ai connectors need OAuth, not built yet) — a fresh McpServer + transport per request (stateless mode,
                      no session id), authenticated by the caller's own `Authorization: Bearer
                      pf_...` header (the same api_tokens a user generates for the REST API — no
                      separate MCP-specific token). Own CORS (origin '*', like /api/v1); not
