@@ -3,21 +3,40 @@ import cors from 'cors';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createMcpServer } from '../lib/mcpServer.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { authenticateBearerToken } from '../middleware/auth.js';
+import { resourceMetadataUrl } from './oauth.js';
 
 const router = Router();
 
 // Open like /api/v1's CORS — a remote MCP client authenticates with a Bearer token, which a
 // cross-origin browser request can't forge (no cookie/session involved), so there's nothing
 // same-origin restriction would protect here.
-router.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE'], allowedHeaders: ['Authorization', 'Content-Type'] }));
+// WWW-Authenticate is exposed so a browser-based client can find the OAuth metadata it names.
+router.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'DELETE'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'Mcp-Protocol-Version', 'Mcp-Session-Id'],
+    exposedHeaders: ['WWW-Authenticate', 'Mcp-Session-Id'],
+  })
+);
+
+// A missing, unknown or expired token gets a 401 whose WWW-Authenticate header names the OAuth
+// metadata (RFC 9728). That's how a connector (Claude.ai, ChatGPT) discovers it should sign the
+// user in, and how it learns an access token expired and needs refreshing.
+function unauthorized(res, error) {
+  const params = [`resource_metadata="${resourceMetadataUrl()}"`];
+  if (error) params.push(`error="${error}"`);
+  res.set('WWW-Authenticate', `Bearer ${params.join(', ')}`);
+  return res.status(401).json({ error: 'not authenticated' });
+}
 
 router.post(
   '/',
   asyncHandler(async (req, res) => {
     const auth = req.headers.authorization;
-    if (!auth?.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'not authenticated' });
-    }
+    if (!auth?.startsWith('Bearer ')) return unauthorized(res);
+    if (!(await authenticateBearerToken(req))) return unauthorized(res, 'invalid_token');
     const token = auth.slice(7).trim();
 
     // A fresh server + transport per request rather than one shared connection — this is

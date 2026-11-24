@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="/theme-init.js?v=<%= assetVersion %>"></script>
+<meta name="color-scheme" content="light dark">
+<title>Connect an app - <%= siteName %></title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="<%= logoUrl || '/favicon.svg' %>">
+<link rel="stylesheet" href="/style.css?v=<%= assetVersion %>">
+</head>
+<body class="dark-canvas">
+<%- include('partials/site-header') %>
+<% if (error) { %>
+<main class="auth-card">
+  <div class="auth-card-head">
+    <h1>Can’t connect this app</h1>
+    <p class="auth-sub"><%= error %></p>
+  </div>
+  <div class="auth-card-footer"><a href="/dashboard">Go to <%= siteName %></a></div>
+</main>
+<% } else { %>
+<main class="auth-card" id="oauth-consent" data-request="<%= request.id %>">
+  <div class="auth-card-head">
+    <h1>Connect <%= request.clientName %>?</h1>
+    <p class="auth-sub">
+      <strong><%= request.clientName %></strong> wants to use your <%= siteName %> account
+      (<%= request.email %>).
+    </p>
+  </div>
+  <div class="oauth-scope">
+    <p>It will be able to:</p>
+    <ul>
+      <li>see your connected accounts, posts and analytics</li>
+      <li>create, schedule, edit and delete posts, including publishing them</li>
+      <li>do anything else the <a href="/api-docs">Postfalcon API</a> allows</li>
+    </ul>
+    <p class="auth-sub">It never sees your password and can’t change your login or plan.
+      You can disconnect it any time in Settings → API access.</p>
+  </div>
+  <p class="auth-sub">After you choose, you’ll go back to <strong><%= request.redirectHost %></strong>.</p>
+  <div class="oauth-actions">
+    <button type="button" id="oauth-allow">Allow</button>
+    <button type="button" id="oauth-deny" class="btn-secondary">Cancel</button>
+  </div>
+  <p id="error" class="error"></p>
+  <div class="auth-card-footer">
+    <span>Not <%= request.email %>? <a href="/login" id="oauth-switch">Log in as someone else</a></span>
+  </div>
+</main>
+<script src="/csrf.js?v=<%= assetVersion %>"></script>
+<script src="/oauth-authorize.js?v=<%= assetVersion %>"></script>
+<% } %>
+<%- include('partials/analytics') %>
+</body>
+</html>

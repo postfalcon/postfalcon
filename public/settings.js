@@ -71,6 +71,50 @@ revokeTokenBtn.addEventListener(
 
 loadApiTokenStatus();
 
+// Apps connected over OAuth (routes/oauth.js) — Disconnect revokes their tokens straight away.
+async function loadOAuthApps() {
+  const list = document.getElementById('oauth-apps-list');
+  try {
+    const apps = await apiJson('/api/oauth/apps');
+    if (apps.length === 0) {
+      list.innerHTML = '<li class="empty">No connected apps.</li>';
+      return;
+    }
+    list.innerHTML = apps
+      .map((a) => {
+        const used = a.last_used_at ? `last used ${new Date(a.last_used_at).toLocaleString()}` : 'not used yet';
+        return `
+          <li>
+            <div class="webhook-row">
+              <span class="webhook-url">${escapeHtml(a.client_name || 'Unnamed app')}</span>
+              <span class="hint">connected ${escapeHtml(new Date(a.connected_at).toLocaleDateString())} — ${escapeHtml(used)}</span>
+            </div>
+            <button type="button" class="delete-btn" data-id="${escapeHtml(a.client_id)}">Disconnect</button>
+          </li>`;
+      })
+      .join('');
+    list.querySelectorAll('.delete-btn').forEach((btn) => {
+      btn.addEventListener(
+        'click',
+        withLoading(btn, 'Disconnecting…', async () => {
+          const ok = await confirmDialog('Disconnect this app? It loses access straight away.', { confirmText: 'Disconnect' });
+          if (!ok) return;
+          try {
+            await apiJson(`/api/oauth/apps/${encodeURIComponent(btn.dataset.id)}`, { method: 'DELETE' });
+            loadOAuthApps();
+            showToast('App disconnected.', 'success');
+          } catch (err) {
+            showToast(err.message);
+          }
+        })
+      );
+    });
+  } catch {
+    list.innerHTML = '<li class="empty">Failed to load connected apps.</li>';
+  }
+}
+loadOAuthApps();
+
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 }

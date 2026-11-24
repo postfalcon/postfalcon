@@ -22,6 +22,7 @@ import uploadsRouter from './routes/uploads.js';
 import { storageProviderName } from './lib/storage.js';
 import postAnalyticsRouter from './routes/postAnalytics.js';
 import mcpRouter from './routes/mcp.js';
+import oauthRouter, { oauthSessionRouter } from './routes/oauth.js';
 import mastodonRouter from './routes/mastodon.js';
 import facebookRouter from './routes/facebook.js';
 import telegramRouter from './routes/telegram.js';
@@ -275,6 +276,12 @@ app.use('/api/v1', publicApiCors);
 // CORS policy (set inside routes/mcp.js) rather than /api/v1's.
 app.use('/mcp', mcpRouter);
 
+// OAuth 2.1 sign-in for /mcp (routes/oauth.js): discovery documents under /.well-known, plus
+// /oauth/register, /oauth/token and /oauth/revoke, which clients call server-to-server (no
+// cookie, so no CSRF), and the /oauth/authorize page. The consent decision and connected-apps
+// list are cookie-session calls, so they live under /api/oauth, behind csrfProtection.
+app.use(oauthRouter);
+
 app.use('/api', csrfProtection);
 app.use('/api/users', usersRouter);
 app.use('/api/auth', authRouter);
@@ -290,6 +297,7 @@ app.use('/api/linkedin', requireAuth, platformGate('linkedin'), linkedinRouter);
 app.use('/api/x', requireAuth, platformGate('x'), xRouter);
 app.use('/api/billing', requireAuth, billingRouter);
 app.use('/api/onboarding', requireAuth, onboardingRouter);
+app.use('/api/oauth', oauthSessionRouter);
 app.use('/api/v1/social-accounts', requireAuth, apiLimiter, socialAccountsRouter);
 app.use('/api/v1/posts', requireAuth, apiLimiter, postsRouter);
 app.use('/api/v1/analytics', requireAuth, apiLimiter, postAnalyticsRouter);

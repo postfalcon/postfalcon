@@ -6,6 +6,8 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import app from '../app.js';
+import { pool } from '../db/pool.js';
+import { hashToken } from '../lib/tokens.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MCP_SERVER_PATH = path.join(__dirname, '../mcp/server.js');
@@ -202,6 +204,10 @@ describe('remote MCP endpoint (Streamable HTTP)', () => {
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
     });
     expect(res.status).toBe(401);
+    // Names the OAuth metadata, which is how a connector (Claude.ai, ChatGPT) finds the sign-in.
+    expect(res.headers.get('www-authenticate')).toMatch(
+      /^Bearer resource_metadata=".*\/\.well-known\/oauth-protected-resource\/mcp"$/
+    );
   });
 
   it('drives the same tools over HTTP as the stdio server exposes', async () => {
@@ -233,12 +239,62 @@ describe('remote MCP endpoint (Streamable HTTP)', () => {
     }
   }, 20000);
 
-  it('surfaces an invalid token as a tool error, same as the stdio server does', async () => {
-    const client = await connectRemoteMcpClient('pf_not_a_real_token');
+  // Unlike stdio (where the token is fixed at launch), a remote client must get a 401 up front
+  // for a bad or expired token: that's its cue to sign in again or refresh an OAuth token.
+  it('answers an unknown token with a 401 invalid_token challenge', async () => {
+    const res = await fetch(`${baseUrl}/mcp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer pf_not_a_real_token' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    });
+    expect(res.status).toBe(401);
+    expect(res.headers.get('www-authenticate')).toContain('error="invalid_token"');
+  });
+
+  it('accepts an OAuth access token, and 401s once it has expired', async () => {
+    const { agent } = await createUserWithToken('mcp-oauth@example.com');
+    const me = await agent.get('/api/auth/me');
+    const { rows: clients } = await pool.query(
+      `INSERT INTO oauth_clients (client_id, client_name, redirect_uris)
+       VALUES ('pfc_mcp_test', 'Test connector', ARRAY['https://example.com/cb']) RETURNING id`
+    );
+    const accessToken = 'pfo_mcp_test_access_token';
+    const { rows: tokens } = await pool.query(
+      `INSERT INTO oauth_tokens (client_id, user_id, access_token_hash, access_expires_at, refresh_token_hash, refresh_expires_at)
+       VALUES ($1, $2, $3, now() + interval '1 hour', $4, now() + interval '90 days') RETURNING id`,
+      [clients[0].id, me.body.id, hashToken(accessToken), hashToken('pfr_mcp_test')]
+    );
+
+    const client = await connectRemoteMcpClient(accessToken);
     try {
-      const result = await client.callTool({ name: 'list_accounts', arguments: {} });
-      expect(result.isError).toBe(true);
-      expect(result.content[0].text).toMatch(/401/);
+      const { tools } = await client.listTools();
+      expect(tools).toHaveLength(6);
+      const accounts = toolJson(await client.callTool({ name: 'list_accounts', arguments: {} }));
+      expect(accounts).toEqual([]);
+    } finally {
+      await client.close();
+    }
+
+    await pool.query(`UPDATE oauth_tokens SET access_expires_at = now() - interval '1 minute' WHERE id = $1`, [tokens[0].id]);
+    const res = await fetch(`${baseUrl}/mcp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    });
+    expect(res.status).toBe(401);
+  }, 20000);
+
+  it('marks read-only and destructive tools for clients', async () => {
+    const { token } = await createUserWithToken('mcp-annotations@example.com');
+    const client = await connectRemoteMcpClient(token);
+    try {
+      const { tools } = await client.listTools();
+      const byName = Object.fromEntries(tools.map((t) => [t.name, t.annotations]));
+      expect(byName.list_posts.readOnlyHint).toBe(true);
+      expect(byName.list_accounts.readOnlyHint).toBe(true);
+      expect(byName.get_analytics_summary.readOnlyHint).toBe(true);
+      expect(byName.delete_post.destructiveHint).toBe(true);
+      expect(byName.create_post.readOnlyHint).toBe(false);
     } finally {
       await client.close();
     }

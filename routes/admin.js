@@ -661,8 +661,12 @@ router.delete(
   asyncHandler(async (req, res) => {
     const user = await findUser(req, res);
     if (!user) return;
-    const { rowCount } = await pool.query('DELETE FROM api_tokens WHERE user_id = $1', [user.id]);
-    if (rowCount === 0) return res.status(404).json({ error: 'not found', message: 'This customer has no API token.' });
+    // Also disconnects any apps signed in over OAuth (routes/oauth.js): same kind of access.
+    const tokens = await pool.query('DELETE FROM api_tokens WHERE user_id = $1', [user.id]);
+    const apps = await pool.query('DELETE FROM oauth_tokens WHERE user_id = $1', [user.id]);
+    if (tokens.rowCount + apps.rowCount === 0) {
+      return res.status(404).json({ error: 'not found', message: 'This customer has no API token or connected app.' });
+    }
     await logAdminAction(req, user.id, 'admin_api_token_revoked');
     res.status(204).end();
   })

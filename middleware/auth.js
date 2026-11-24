@@ -1,7 +1,13 @@
 import { pool } from '../db/pool.js';
 import { hashToken } from '../lib/tokens.js';
 
-async function authenticateBearerToken(req) {
+const USER_COLUMNS = `users.id, users.email, users.email_verified_at, users.created_at,
+            users.stripe_customer_id, users.plan, users.plan_status, users.plan_renews_at, users.plan_cancels_at`;
+
+// Two kinds of Bearer token, told apart by prefix: a pf_ API token the user generated in
+// Settings, or a pfo_ OAuth access token a connector (Claude.ai, ChatGPT…) got through
+// routes/oauth.js. Both act as the user, so everything behind requireAuth takes either.
+export async function authenticateBearerToken(req) {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) return null;
 
@@ -9,9 +15,24 @@ async function authenticateBearerToken(req) {
   if (!token) return null;
 
   const tokenHash = hashToken(token);
+  if (token.startsWith('pfo_')) {
+    const result = await pool.query(
+      `SELECT ${USER_COLUMNS}
+       FROM oauth_tokens
+       JOIN users ON users.id = oauth_tokens.user_id
+       WHERE oauth_tokens.access_token_hash = $1 AND oauth_tokens.access_expires_at > now()
+         AND users.suspended_at IS NULL`,
+      [tokenHash]
+    );
+    if (result.rows.length === 0) return null;
+    pool
+      .query('UPDATE oauth_tokens SET last_used_at = now() WHERE access_token_hash = $1', [tokenHash])
+      .catch(() => {});
+    return { ...result.rows[0], viaOAuth: true };
+  }
+
   const result = await pool.query(
-    `SELECT users.id, users.email, users.email_verified_at, users.created_at,
-            users.stripe_customer_id, users.plan, users.plan_status, users.plan_renews_at, users.plan_cancels_at
+    `SELECT ${USER_COLUMNS}
      FROM api_tokens
      JOIN users ON users.id = api_tokens.user_id
      WHERE api_tokens.token_hash = $1 AND users.suspended_at IS NULL`,
@@ -29,7 +50,10 @@ export async function requireAuth(req, res, next) {
   }
 
   const user = await authenticateBearerToken(req);
-  if (user) {
+  // An OAuth token is held by another company's service (a connector), so it only reaches the
+  // public API it was granted for (/api/v1, which /mcp's tools call) — never account plumbing
+  // like change-password, delete-account or API-token routes.
+  if (user && !(user.viaOAuth && !req.originalUrl.startsWith('/api/v1/'))) {
     req.user = user;
     return next();
   }

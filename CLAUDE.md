@@ -225,11 +225,26 @@ mcp/server.js        ...over stdio, for clients that spawn a local process (Clau
                      Cursor's `command` config) — reads POSTFALCON_BASE_URL/POSTFALCON_API_TOKEN from
                      the environment.
 routes/mcp.js        ...over Streamable HTTP at POST /mcp, for clients that connect via a URL
-                     instead (Claude Code, Cursor's `url` config — clients that let you set a
-                     header; ChatGPT/Claude.ai connectors need OAuth, not built yet) — a fresh McpServer + transport per request (stateless mode,
-                     no session id), authenticated by the caller's own `Authorization: Bearer
-                     pf_...` header (the same api_tokens a user generates for the REST API — no
-                     separate MCP-specific token). Own CORS (origin '*', like /api/v1); not
+                     instead (Claude Code, Cursor's `url` config, and — via OAuth below —
+                     Claude.ai/ChatGPT connectors) — a fresh McpServer + transport per request (stateless mode,
+                     no session id), authenticated by the caller's own `Authorization: Bearer`
+                     header: a `pf_` api_token the user generated, or a `pfo_` OAuth access token.
+                     A missing/unknown/expired token gets 401 + `WWW-Authenticate: Bearer
+                     resource_metadata=...`, which is how connectors find the sign-in and know to
+                     refresh. Tools carry readOnly/destructive annotations (the connector
+                     directories require them).
+routes/oauth.js      OAuth 2.1 authorization server for /mcp (migration 033): /.well-known/oauth-
+                     protected-resource[/mcp] + /.well-known/oauth-authorization-server, open
+                     dynamic client registration (POST /oauth/register), GET /oauth/authorize
+                     (PKCE S256 required; logged-out users go to /login?next=, which login.js and
+                     Google sign-in honour only for /oauth/authorize?), the consent decision at
+                     POST /api/oauth/consent (session + CSRF; the request lives in the session,
+                     the page only names it; navigates from script because of form-action),
+                     POST /oauth/token (code + refresh grants; 1h pfo_ access, 90-day pfr_
+                     refresh rotated on use) and /oauth/revoke. middleware/auth.js accepts pfo_
+                     tokens only on /api/v1/* (and /mcp) — never account routes. Users see and
+                     disconnect apps in Settings -> API access (/api/oauth/apps); the admin's
+                     "revoke API token" also drops them. Own CORS (origin '*', like /api/v1); not
                      mounted under /api since it isn't versioned REST and doesn't need
                      csrfProtection (Bearer-only, same reasoning as everything else under
                      /api/v1).

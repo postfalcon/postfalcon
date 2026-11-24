@@ -39,6 +39,15 @@ if (passwordToggle) {
   });
 }
 
+// ?next= is only honoured for an app's OAuth consent page (routes/oauth.js), so the login page
+// can't be used to bounce someone to an arbitrary address after they sign in.
+const nextParam = new URLSearchParams(window.location.search).get('next');
+const afterLogin = nextParam && nextParam.startsWith('/oauth/authorize?') ? nextParam : null;
+if (afterLogin) {
+  const google = document.querySelector('.btn-google');
+  if (google) google.href = `/api/auth/google?next=${encodeURIComponent(afterLogin)}`;
+}
+
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
@@ -57,7 +66,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     if (res.ok) {
       // Log in straight to the app. Plan selection / payment happens in the signup flow,
       // not on every login.
-      window.location.href = '/dashboard';
+      window.location.href = afterLogin || '/dashboard';
       return;
     }
     const data = await res.json().catch(() => ({}));

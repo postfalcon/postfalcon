@@ -70,6 +70,9 @@ router.get(
     // An invite link (?invite=, from the signup page) for when sign-ups are invite-only; only
     // used if this Google account turns out to be new.
     req.session.googleAuthInvite = typeof req.query.invite === 'string' ? req.query.invite.slice(0, 200) : null;
+    // Back to an app's OAuth consent page afterwards (routes/oauth.js) — that page only.
+    req.session.googleAuthNext =
+      typeof req.query.next === 'string' && req.query.next.startsWith('/oauth/authorize?') ? req.query.next.slice(0, 4000) : null;
 
     const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     url.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID);
@@ -90,6 +93,8 @@ router.get(
     delete req.session.googleAuthPlan;
     const invite = req.session.googleAuthInvite;
     delete req.session.googleAuthInvite;
+    const next = req.session.googleAuthNext;
+    delete req.session.googleAuthNext;
     if (!code || !state || state !== req.session.googleAuthState) {
       return res.status(400).send('Invalid or expired sign-in attempt. Please try again.');
     }
@@ -174,11 +179,11 @@ router.get(
         email: user.email,
       }).catch((logErr) => req.log.error({ err: logErr }, 'failed to record auth event'));
 
-      if (isNewUser) {
-        // Same as email signup: a picked plan goes on to Checkout, otherwise into the app (free plan).
-        return res.redirect(plan ? `/pricing?start=${encodeURIComponent(plan)}` : '/dashboard');
+      if (isNewUser && plan) {
+        // Same as email signup: a picked plan goes on to Checkout.
+        return res.redirect(`/pricing?start=${encodeURIComponent(plan)}`);
       }
-      res.redirect('/dashboard');
+      res.redirect(next || '/dashboard');
     });
   })
 );
