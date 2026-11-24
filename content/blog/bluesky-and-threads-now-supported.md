@@ -45,8 +45,8 @@ its own.
 
 Cross-posting, recurring posts, the calendar, and [Analytics](/blog/post-analytics-see-whats-working)
 all treat Bluesky and Threads exactly like every other platform — there's nothing extra to set
-up. Analytics coverage differs slightly per platform: Threads reports views, likes, and
-comments; Bluesky reports likes and comments (no view counts, since that's not something the
-Bluesky API exposes).
+up. Analytics coverage differs slightly per platform: Bluesky reports likes and comments (no
+view counts, since that's not something the Bluesky API exposes). Threads posts aren't measured
+yet — Meta hasn't granted Postfalcon access to Threads insights.
 
 Head to [Accounts](/accounts) to connect either one.

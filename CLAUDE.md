@@ -107,8 +107,10 @@ lib/platforms.js     The platform registry — the ONE place a social platform i
                      adapter just logs in fresh (short-lived session) on every publish. An adapter can
                      also export `fetchMetrics(post) -> {views, likes, comments, shares}` (any field
                      null if that platform doesn't report it) — optional, only mastodon/bluesky/
-                     facebook/instagram/threads/youtube have one; telegram/tiktok/pinterest/linkedin
-                     don't (no metrics API available via the scopes Postfalcon already requests).
+                     facebook/instagram/youtube have one; telegram/tiktok/pinterest/linkedin
+                     don't (no metrics API available via the scopes Postfalcon already requests),
+                     and threads' is parked as fetchInsights() because Meta refused
+                     threads_manage_insights (Nov 2026) — rename it back once approved.
                      Pinterest and LinkedIn both use access levels open to any registered app (not
                      the partner-approval-gated tiers each platform also has): Pinterest posts a Pin
                      to one board per account (social_accounts.metadata.board_id, same place

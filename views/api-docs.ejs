@@ -134,9 +134,9 @@
       <p>
         A few times a day, Postfalcon pulls fresh view/like/comment/share counts for your recently-posted
         content straight from each platform's API and stores the latest snapshot on the post. Coverage
-        varies by platform: Bluesky, Facebook, Instagram, Mastodon, Threads, and YouTube report likes and
-        comments (YouTube and Threads also report views); Telegram and TikTok don't expose post metrics
-        through their APIs, so those posts stay unmetered. <code>GET /api/v1/posts</code> includes the raw
+        varies by platform: Bluesky, Facebook, Instagram, Mastodon, and YouTube report likes and
+        comments (YouTube also reports views); Telegram and TikTok don't expose post metrics
+        through their APIs, and Threads insights aren't enabled yet, so those posts stay unmetered. <code>GET /api/v1/posts</code> includes the raw
         <code>metric_views</code> / <code>metric_likes</code> / <code>metric_comments</code> /
         <code>metric_shares</code> / <code>metrics_updated_at</code> fields on every post (<code>null</code>
         until a platform reports something); <code>GET /api/v1/analytics/summary</code> aggregates them into

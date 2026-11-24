@@ -39,6 +39,8 @@ describe('threads oauth', () => {
     expect(res.status).toBe(302);
     expect(res.headers.location).toContain('threads.net/oauth/authorize');
     expect(res.headers.location).toContain('threads_content_publish');
+    // Meta refused threads_manage_insights; asking for it would break a Live-mode login.
+    expect(res.headers.location).not.toContain('threads_manage_insights');
   });
 
   it('rejects a callback with a mismatched state', async () => {

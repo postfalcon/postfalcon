@@ -8,8 +8,11 @@ import { logger } from '../lib/logger.js';
 import { atAccountLimit } from '../middleware/planLimit.js';
 
 const router = Router();
-// threads_manage_insights backs fetchMetrics() in lib/platforms/threads.js (the /insights endpoint).
-const SCOPES = 'threads_basic,threads_content_publish,threads_manage_insights';
+// Only what Meta's App Review approved (5 Nov 2026 submission). threads_manage_insights was
+// refused, and a Live-mode login asking for an unapproved permission fails, so it's left out
+// until a later review approves it — then add it back here and re-export fetchInsights() in
+// lib/platforms/threads.js as fetchMetrics.
+const SCOPES = 'threads_basic,threads_content_publish';
 
 function redirectUri() {
   return `${process.env.BASE_URL}/api/threads/callback`;

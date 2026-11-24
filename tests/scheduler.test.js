@@ -1626,7 +1626,7 @@ describe('post metrics refresh', () => {
     expect(rows[0].metrics_updated_at).not.toBeNull();
   });
 
-  it('fetches and stores metrics for a posted Threads post (media insights `values` shape)', async () => {
+  it('skips Threads posts (insights permission not approved by Meta)', async () => {
     const userId = await createUser('metrics-threads@example.com');
     const { rows: acct } = await pool.query(
       `INSERT INTO social_accounts (user_id, platform, display_name, external_account_id, access_token, token_expires_at)
@@ -1635,29 +1635,14 @@ describe('post metrics refresh', () => {
     );
     const postId = await createPostedPost(userId, acct[0].id, { platformPostId: 'th-media-1' });
 
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (url) => {
-        expect(String(url)).toContain('https://graph.threads.net/v1.0/th-media-1/insights');
-        return jsonResponse({
-          data: [
-            { name: 'views', period: 'lifetime', values: [{ value: 42 }] },
-            { name: 'likes', period: 'lifetime', values: [{ value: 3 }] },
-            { name: 'replies', period: 'lifetime', values: [{ value: 1 }] },
-            { name: 'reposts', period: 'lifetime', values: [{ value: 0 }] },
-          ],
-        });
-      })
-    );
+    const fetchMock = vi.fn(async () => jsonResponse({}));
+    vi.stubGlobal('fetch', fetchMock);
 
-    const result = await refreshPostMetrics();
-    expect(result.refreshed).toBe(1);
+    await refreshPostMetrics();
+    expect(fetchMock).not.toHaveBeenCalled();
 
-    const { rows } = await pool.query('SELECT * FROM posts WHERE id = $1', [postId]);
-    expect(rows[0].metric_views).toBe(42);
-    expect(rows[0].metric_likes).toBe(3);
-    expect(rows[0].metric_comments).toBe(1);
-    expect(rows[0].metric_shares).toBe(0);
+    const { rows } = await pool.query('SELECT metrics_updated_at FROM posts WHERE id = $1', [postId]);
+    expect(rows[0].metrics_updated_at).toBeNull();
   });
 
   it("doesn't ask for `shares` on a Facebook video (a Video node has no such field)", async () => {
