@@ -295,6 +295,11 @@ describe('remote MCP endpoint (Streamable HTTP)', () => {
       expect(byName.get_analytics_summary.readOnlyHint).toBe(true);
       expect(byName.delete_post.destructiveHint).toBe(true);
       expect(byName.create_post.readOnlyHint).toBe(false);
+      // The Claude directory requires readOnlyHint or destructiveHint true on every tool.
+      for (const t of tools) {
+        expect(t.title).toBeTruthy();
+        expect(t.annotations.readOnlyHint === true || t.annotations.destructiveHint === true).toBe(true);
+      }
     } finally {
       await client.close();
     }
