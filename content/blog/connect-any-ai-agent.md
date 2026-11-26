@@ -16,9 +16,10 @@ agent's client had to be able to spawn a local process and pass it environment v
 covers Claude Desktop and Cursor's `command`-style config, but not agents that connect over a
 URL instead. Postfalcon's MCP server now works both ways.
 
-> **Update, 16 Nov 2026:** ChatGPT and Claude.ai custom connectors need OAuth sign-in rather than
-> a bearer token, so they can't connect yet. OAuth support is coming; until then the remote URL
-> works with Claude Code, Cursor and other clients that let you set a header.
+> **Update, 27 Nov 2026:** Claude.ai custom connectors now work too. They sign in with OAuth
+> instead of a bearer token: add `https://postfalcon.co/mcp` (or your own server's `/mcp`) as a
+> custom connector, log in to Postfalcon and approve. Claude Code, Cursor and other clients that
+> let you set a header still connect with a token, as below.
 
 ## Two ways in, same tools
 

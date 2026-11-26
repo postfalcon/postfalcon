@@ -216,8 +216,15 @@ X-Postfalcon-Signature: sha256=&lt;hex&gt;</code></pre>
           <strong>A URL</strong> (Claude Code, Cursor's <code>url</code>-style config, or any other
           <a href="https://modelcontextprotocol.io/specification/2025-03-26/basic/transports" target="_blank" rel="noopener">Streamable HTTP</a>
           client that lets you set a header): point it at <code>https://your-postfalcon-host/mcp</code>
-          with your token as a standard bearer header &mdash; no local process to run. ChatGPT and
-          Claude.ai custom connectors need OAuth sign-in, which isn&rsquo;t supported yet.
+          with your token as a standard bearer header &mdash; no local process to run.
+        </li>
+        <li>
+          <strong>A connector that signs in with OAuth</strong> (Claude.ai custom connectors): add
+          <code>https://your-postfalcon-host/mcp</code> as the connector URL, log in to Postfalcon and
+          approve. No token to copy &mdash; the connector finds the sign-in itself (OAuth 2.1 with PKCE
+          and dynamic client registration, advertised at
+          <code>/.well-known/oauth-protected-resource/mcp</code>). Connected apps are listed, and can be
+          disconnected, under <strong>Settings &rarr; API access</strong>.
         </li>
       </ul>
       <pre><code>Authorization: Bearer pf_&lt;your token&gt;</code></pre>

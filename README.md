@@ -278,8 +278,10 @@ New accounts then get a 7-day trial and pick a plan through Stripe Checkout.
   access for agents**.
 - MCP server, for AI assistants:
   - URL-based clients that let you set a header (Claude Code, Cursor): connect to
-    `<BASE_URL>/mcp` with the header `Authorization: Bearer <your token>`. ChatGPT and
-    Claude.ai custom connectors need OAuth sign-in, which isn't supported yet.
+    `<BASE_URL>/mcp` with the header `Authorization: Bearer <your token>`.
+  - Connectors that sign in with OAuth (Claude.ai custom connectors): add `<BASE_URL>/mcp` as
+    the connector URL, log in to Postfalcon and approve. No token to copy; connected apps are
+    listed (and can be disconnected) under **Settings → API access**.
   - Local clients (Claude Desktop, Cursor's `command` setting): run `npm run mcp` with
     `POSTFALCON_BASE_URL` and `POSTFALCON_API_TOKEN` set.
 
